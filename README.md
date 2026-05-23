@@ -1,7 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/gradio-app/gradio/main/guides/assets/gradio.svg" alt="Gradio Logo" width="120" height="120" style="margin-bottom: 20px;">
-  
-  # 🤖 DualAssist Benchmark
+  <h1>🤖 DualAssist Benchmark</h1>
   
   **Compare Open-Source vs Frontier AI Assistants**  
   *with evaluation, guardrails, memory, tool use, and observability*
