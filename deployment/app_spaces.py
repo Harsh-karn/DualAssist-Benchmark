@@ -194,10 +194,8 @@ with gr.Blocks(
     
     gr.ChatInterface(
         fn=predict,
-        type="messages",
         chatbot=gr.Chatbot(
             height=450,
-            show_copy_button=True,
             placeholder="Ask me anything! I'm a helpful AI assistant powered by Qwen 2.5.",
         ),
         textbox=gr.Textbox(

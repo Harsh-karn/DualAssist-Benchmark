@@ -474,10 +474,8 @@ def create_app() -> gr.Blocks:
                         """)
                         oss_chat = gr.ChatInterface(
                             fn=chat_oss,
-                            type="messages",
                             chatbot=gr.Chatbot(
                                 height=500,
-                                show_copy_button=True,
                                 placeholder="Chat with the open-source model...",
                             ),
                             textbox=gr.Textbox(
@@ -499,10 +497,8 @@ def create_app() -> gr.Blocks:
                         """)
                         frontier_chat = gr.ChatInterface(
                             fn=chat_frontier,
-                            type="messages",
                             chatbot=gr.Chatbot(
                                 height=500,
-                                show_copy_button=True,
                                 placeholder="Chat with the frontier model...",
                             ),
                             textbox=gr.Textbox(
