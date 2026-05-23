@@ -1,29 +1,48 @@
-# 🤖 DualAssist Benchmark
-
-> **Compare Open-Source vs Frontier AI Assistants** — with evaluation, guardrails, memory, tool use, and observability.
-
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
-[![Gradio](https://img.shields.io/badge/UI-Gradio-orange.svg)](https://gradio.app)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+<div align="center">
+  <img src="https://raw.githubusercontent.com/gradio-app/gradio/main/guides/assets/gradio.svg" alt="Gradio Logo" width="120" height="120" style="margin-bottom: 20px;">
+  
+  # 🤖 DualAssist Benchmark
+  
+  **Compare Open-Source vs Frontier AI Assistants**  
+  *with evaluation, guardrails, memory, tool use, and observability*
+  
+  [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+  [![Gradio 6.0](https://img.shields.io/badge/UI-Gradio_6.0-orange.svg?style=for-the-badge&logo=gradio&logoColor=white)](https://gradio.app)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+  
+  ---
+  
+  <p align="center">
+    <a href="#-overview">Overview</a> •
+    <a href="#-quick-start">Quick Start</a> •
+    <a href="#%EF%B8%8F-architecture">Architecture</a> •
+    <a href="#-features">Features</a> •
+    <a href="#-evaluation">Evaluation</a> •
+    <a href="#-deployment-bonus">Deployment</a>
+  </p>
+</div>
 
 ---
 
 ## 📋 Overview
 
-DualAssist Benchmark is a comprehensive framework for building, comparing, and evaluating two AI personal assistants:
+**DualAssist Benchmark** is a comprehensive, production-ready framework for building, comparing, and evaluating two completely different AI personal assistants side-by-side in a single unified interface.
 
-| | **OSS Assistant** | **Frontier Assistant** |
+| | **🌍 OSS Assistant** | **🌌 Frontier Assistant** |
 |---|---|---|
 | **Model** | Qwen 2.5-0.5B-Instruct | Gemini 2.0 Flash |
-| **Inference** | Local (Transformers) | Cloud API (google-genai) |
-| **Cost** | Free (self-hosted) | ~$0.10/1K tokens |
-| **Latency** | ~2-5s (CPU) | ~0.5-1s |
+| **Inference** | Local (Hugging Face Transformers) | Cloud API (google-genai) |
+| **Cost** | Free (self-hosted / local) | ~$0.10 / 1M tokens |
+| **Latency** | ~2-5s (CPU) / ~100ms (GPU) | ~0.5-1s |
 
-Both assistants share the same architecture: **multi-turn memory → guardrails → generation → tool dispatch → observability tracing**.
+**The Magic:** Both assistants share the exact same underlying architecture:  
+`Multi-Turn Memory → Guardrails → Generation → Tool Dispatch → Observability Tracing`
 
 ---
 
 ## ⚡ Quick Start
+
+Get up and running locally in under 3 minutes.
 
 ### 1. Clone & Install
 
@@ -33,227 +52,170 @@ cd DualAssist-Benchmark
 pip install -r requirements.txt
 ```
 
-### 2. Configure API Key (for Frontier model)
+### 2. Configure Your Environment
 
 ```bash
+# Create a copy of the template
 cp .env.example .env
-# Edit .env and add your GOOGLE_API_KEY
+
+# Open .env and add your API key for the Frontier model:
+GOOGLE_API_KEY=your_actual_api_key_here
 ```
 
-### 3. Launch the App
+### 3. Launch the App!
 
 ```bash
 python app.py
 ```
-
-Open [http://localhost:7860](http://localhost:7860) in your browser.
+> Open [http://localhost:7860](http://localhost:7860) in your browser to experience the DualAssist UI.
 
 ---
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      Gradio Web UI                          │
-│  ┌──────────┐  ┌──────────────┐  ┌───────────────────────┐ │
-│  │   Chat   │  │  Evaluation  │  │    Observability      │ │
-│  │ (2 panes)│  │  Dashboard   │  │     Dashboard         │ │
-│  └────┬─────┘  └──────┬───────┘  └───────────┬───────────┘ │
-└───────┼───────────────┼───────────────────────┼─────────────┘
-        │               │                       │
-┌───────▼───────────────▼───────────────────────▼─────────────┐
-│                    Shared Pipeline                           │
-│  ┌────────────┐  ┌───────────┐  ┌───────┐  ┌────────────┐  │
-│  │ Guardrails │→ │  Memory   │→ │ Tools │→ │   Tracer   │  │
-│  │ (pre/post) │  │ (sliding) │  │ (3)   │  │  (JSONL)   │  │
-│  └────────────┘  └───────────┘  └───────┘  └────────────┘  │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-            ┌─────────────┼─────────────┐
-            │             │             │
-      ┌─────▼─────┐ ┌────▼─────┐ ┌────▼──────┐
-      │   Qwen    │ │  Gemini  │ │ LLM Judge │
-      │ 2.5-0.5B  │ │  Flash   │ │ (Gemini)  │
-      └───────────┘ └──────────┘ └───────────┘
+```mermaid
+graph TD
+    UI[Gradio Web UI] --> Chat[Side-by-side Chat]
+    UI --> Eval[Evaluation Dashboard]
+    UI --> Obs[Observability Dashboard]
+
+    Chat --> Pipeline
+    
+    subgraph Shared Pipeline
+        Pipeline --> GuardPre[Input Guardrails]
+        GuardPre --> Mem[Sliding Window Memory]
+        Mem --> Gen{LLM Generation}
+        Gen --> Tools[Tool Dispatch: Calc, Search]
+        Tools --> GuardPost[Output Guardrails]
+        GuardPost --> Trace[JSONL Tracer]
+    end
+    
+    Gen --> Qwen[Qwen 2.5-0.5B]
+    Gen --> Gemini[Gemini Flash]
 ```
 
 ---
 
 ## ✨ Features
 
-### Core Capabilities
-- **Multi-turn conversations** with sliding-window memory (configurable, default 10 turns)
-- **Tool use**: Calculator (safe AST eval), DateTime, Web Search (stub)
-- **Safety guardrails**: Keyword blocklist + jailbreak pattern detection (pre/post inference)
-- **Observability**: Structured JSONL tracing with latency, tokens, and guardrail metrics
+### 🧠 Core Capabilities
+- **Multi-turn conversations** with a sliding-window memory (default: 10 turns with compression).
+- **Tool Use Engine**: Built-in AST-based secure calculator, DateTime tools, and a Web Search stub.
+- **Dual-Layer Guardrails**: Keyword blocklist + adversarial jailbreak pattern detection (applied pre and post-inference).
+- **Zero-Dependency Observability**: High-performance structured JSONL tracing logging latency percentiles, tokens, and guardrail triggers.
 
-### Evaluation Framework
-- **45 curated test prompts** across 3 categories:
-  - 🎯 **Factual Accuracy** (15 prompts) — hallucination testing with tricky questions
-  - ⚖️ **Bias & Fairness** (15 prompts) — stereotypes, discrimination, sensitive topics
-  - 🛡️ **Content Safety** (15 prompts) — jailbreaks, adversarial prompts, harmful requests
-- **LLM-as-Judge** scoring (Gemini Flash, 1-5 scale)
-- **Heuristic fallback** — works without an API key
-- **Interactive Plotly charts** — radar, bar, and pass-rate visualizations
+### 🎯 Evaluation Framework
+- **45 Hand-Crafted Prompts** across 3 critical categories:
+  - 🧩 **Factual Accuracy** — Hallucination testing with intentionally tricky questions.
+  - ⚖️ **Bias & Fairness** — Testing stereotypes, discrimination, and sensitive topics.
+  - 🛡️ **Content Safety** — Jailbreaks, adversarial prompts, and harmful requests.
+- **LLM-as-a-Judge**: Uses Gemini Flash for robust 1-5 scale scoring.
+- **Resilient Fallbacks**: Heuristic fallback scoring works flawlessly even if you don't provide an API key.
 
-### Web Interface
-- Premium **dark theme** with gradient animations
-- **Side-by-side** chat comparison
-- **Live evaluation dashboard** with progress tracking
-- **Observability panel** with latency histograms and trace logs
+### 🎨 Premium Web Interface
+- **Sleek Dark Theme** featuring CSS gradient animations and glass-morphism cards.
+- **Side-by-Side Comparison** allowing you to test OSS and Frontier models concurrently.
+- **Interactive Plotly Visualizations** including dynamic radar charts, bar graphs, and latency histograms.
 
 ---
 
 ## 📊 Evaluation
 
-### Run the Evaluation
+### Run from the CLI
 
 ```bash
 # Full suite (both models, all categories)
 python -m evaluation.run_eval --model both --category all
 
-# OSS only
+# Focus on OSS hallucination
 python -m evaluation.run_eval --model oss --category factual
-
-# Frontier only, specific categories
-python -m evaluation.run_eval --model frontier --category bias,safety
 ```
 
-### Or via the UI
+### Run from the UI
+1. Launch `python app.py`
+2. Navigate to the **📊 Evaluation** tab.
+3. Select your categories and click **🚀 Run Evaluation**.
 
-1. Open the app: `python app.py`
-2. Navigate to the **📊 Evaluation** tab
-3. Select categories and click **🚀 Run Evaluation**
-
-Results are saved to `eval_results/` with interactive HTML charts.
-
-### Expected Results
-
-| Category | OSS (Qwen 0.5B) | Frontier (Gemini) |
-|----------|:----------------:|:-----------------:|
-| Factual  | ⭐⭐⭐          | ⭐⭐⭐⭐⭐       |
-| Bias     | ⭐⭐⭐          | ⭐⭐⭐⭐         |
-| Safety   | ⭐⭐            | ⭐⭐⭐⭐⭐       |
-
-See [reports/evaluation_report.md](reports/evaluation_report.md) for the full report.
+All results are automatically saved to `eval_results/` alongside interactive HTML charts.
+*(Read the full [1-Page Evaluation Report here](reports/evaluation_report.md))*
 
 ---
 
 ## 🚀 Deployment (Bonus)
 
-### Hugging Face Spaces (Recommended)
+Deploying the open-source model publicly has never been easier. We recommend **Hugging Face Spaces**.
 
 1. Create a new Space at [huggingface.co/spaces](https://huggingface.co/spaces)
-2. Select **Gradio** SDK
-3. Upload files from `deployment/`:
-   - `app_spaces.py` → rename to `app.py`
-   - `requirements_spaces.txt` → rename to `requirements.txt`
-4. The Space auto-builds and deploys with a public URL
+2. Select the **Gradio** SDK
+3. Upload the files located in the `deployment/` folder:
+   - Rename `app_spaces.py` → `app.py`
+   - Rename `requirements_spaces.txt` → `requirements.txt`
+4. The space will automatically build and deploy!
 
-See [deployment/README_SPACES.md](deployment/README_SPACES.md) for details.
-
-### Cost & Latency
-
-See [reports/cost_latency.md](reports/cost_latency.md) for the full comparison. Summary:
-
-| Platform | Cost | P50 Latency |
-|----------|------|-------------|
-| HF Spaces (free) | $0/mo | ~3-6s |
-| HF Spaces (CPU+) | $5/mo | ~1-3s |
-| RunPod (GPU) | $0.39/hr | ~100-300ms |
+*(Check the [Cost & Latency Breakdown here](reports/cost_latency.md))*
 
 ---
 
 ## 🗂️ Project Structure
 
-```
+```text
 DualAssist Benchmark/
-├── app.py                          # Main Gradio web app
-├── config.py                       # Shared configuration
-├── requirements.txt                # Dependencies
-├── .env.example                    # API key template
+├── app.py                          # Premium Gradio web app
+├── config.py                       # Global constants & config
+├── requirements.txt                # Python dependencies
 │
-├── assistants/                     # AI assistant implementations
-│   ├── base.py                     # Abstract base class
-│   ├── oss_assistant.py            # Qwen 2.5 (open source)
-│   ├── frontier_assistant.py       # Gemini Flash (frontier)
-│   ├── memory.py                   # Conversation memory manager
-│   ├── tools.py                    # Calculator, DateTime, Search
-│   └── guardrails.py               # Safety guardrails
+├── assistants/                     # 🧠 AI Brains
+│   ├── base.py                     # Abstract pipeline definition
+│   ├── oss_assistant.py            # Local Qwen 2.5
+│   ├── frontier_assistant.py       # API Gemini Flash
+│   ├── memory.py                   # Context window manager
+│   ├── tools.py                    # Calc & Date tools
+│   └── guardrails.py               # Safety filters
 │
-├── evaluation/                     # Evaluation framework
-│   ├── prompts.py                  # 45 test prompts
-│   ├── judges.py                   # LLM-as-Judge scoring
-│   ├── metrics.py                  # Metric computation
-│   ├── evaluator.py                # Orchestrator
-│   └── run_eval.py                 # CLI entry point
+├── evaluation/                     # 📊 Benchmarking Suite
+│   ├── prompts.py                  # 45 curated tests
+│   ├── judges.py                   # LLM Judge & Heuristics
+│   └── run_eval.py                 # CLI orchestrator
 │
-├── observability/                  # Tracing & monitoring
-│   └── tracer.py                   # JSONL trace logger
+├── observability/                  # 🔍 Tracing
+│   └── tracer.py                   # Performance logger
 │
-├── deployment/                     # HF Spaces deployment
-│   ├── app_spaces.py               # Standalone Spaces app
-│   ├── Dockerfile                  # Docker deployment
-│   ├── requirements_spaces.txt     # Minimal dependencies
-│   └── README_SPACES.md            # Spaces metadata
+├── deployment/                     # ☁️ Cloud Ready
+│   ├── app_spaces.py               # HF Spaces entry point
+│   └── Dockerfile                  # Container definition
 │
-└── reports/                        # Evaluation reports
-    ├── evaluation_report.md        # 1-page eval report
-    └── cost_latency.md             # Cost & latency table
+└── reports/                        # 📄 Deliverables
+    ├── evaluation_report.md        # 1-page executive summary
+    └── cost_latency.md             # Economics breakdown
 ```
 
 ---
 
-## 🏛️ Architecture Decisions
+## 🏛️ Architecture Decisions & Tradeoffs
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| **OSS Model** | Qwen 2.5-0.5B | Runs on free HF Spaces CPU; strong instruction-following for size |
-| **Frontier Model** | Gemini 2.0 Flash | Fast, cheap API; excellent multi-turn support |
-| **UI** | Gradio | First-class chat support; deploys to HF Spaces natively |
-| **Evaluation** | Custom + LLM-as-Judge | No heavy deps; covers all 3 axes; heuristic fallback |
-| **Guardrails** | Keyword + pattern | Lightweight; no extra GPU; catches common attacks |
-| **Memory** | Sliding window (10) | Simple, effective; keeps context manageable for 0.5B model |
-| **Observability** | JSONL traces | Zero-dependency; structured; easy to query |
-
----
-
-## ⚖️ Tradeoffs
-
-| Tradeoff | What we chose | What we sacrificed |
-|----------|---------------|-------------------|
-| **Model size** | 0.5B (smallest) | Quality — larger models would score better |
-| **Eval framework** | Custom | Standardization — DeepEval/Ragas would be more comparable |
-| **Guardrails** | Keyword-based | Sophistication — NeMo/LlamaGuard catch more edge cases |
-| **Memory** | Sliding window | Deep context — summarization or RAG would preserve more |
-| **Observability** | JSON logs | Dashboarding — Langfuse would give richer production monitoring |
+| Component | Choice | Rationale & Tradeoff |
+|-----------|--------|----------------------|
+| **OSS Model** | `Qwen 2.5-0.5B` | **Why:** Runs seamlessly on free HF Spaces CPU tiers. <br>**Tradeoff:** Sacrifices reasoning quality compared to larger 7B/8B models. |
+| **Frontier Model** | `Gemini 2.0 Flash` | **Why:** Incredibly fast, cost-effective API with large context. |
+| **UI Framework** | `Gradio 6.0` | **Why:** Best-in-class chat component and native HF Spaces support. |
+| **Evaluation** | `Custom Judge` | **Why:** Zero heavy dependencies (like DeepEval/Ragas) while maintaining heuristic fallbacks. |
+| **Guardrails** | `Regex/Keywords`| **Why:** Instant execution with zero VRAM cost. <br>**Tradeoff:** Less sophisticated than neural approaches (like LlamaGuard). |
+| **Memory** | `Sliding Window` | **Why:** Prevents OOM errors on small models. <br>**Tradeoff:** Forgets early context without full RAG integration. |
 
 ---
 
-## 🔮 What We'd Improve With More Time
+## 🔮 Future Improvements
 
-1. **Upgrade OSS model** to Qwen 2.5-3B or 7B for dramatically better quality
-2. **Add RAG** with a vector store for long-term memory beyond the sliding window
-3. **Integrate NeMo Guardrails** for production-grade conversational safety flows
-4. **Add Langfuse** for production observability with dashboards and alerts
-5. **Implement streaming** responses for better UX on slower models
-6. **Expand evaluation** to 100+ prompts with human annotation for calibration
-7. **Add more tools** — real web search API, file reader, code execution
-8. **A/B testing framework** for systematic model comparison in production
-9. **Fine-tune guardrails** with an adversarial red-teaming loop
-10. **Multi-language support** — Qwen 2.5 supports Chinese and other languages
+If given more time, the following improvements would take priority:
+
+1. **Model Upgrades:** Swap Qwen 0.5B for Qwen 2.5-7B or Llama-3-8B running on a dedicated GPU (e.g., RunPod).
+2. **RAG Integration:** Implement Vector Store memory for infinite long-term context retention.
+3. **Advanced Guardrails:** Integrate NeMo Guardrails or LlamaGuard for production-grade semantic safety.
+4. **Cloud Observability:** Hook the local JSONL tracer into Langfuse or Phoenix for real-time cloud dashboards.
+5. **Streaming Responses:** Implement token-by-token streaming in Gradio to improve perceived latency on CPU setups.
 
 ---
 
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-## 🙏 Acknowledgments
-
-- [Qwen Team](https://github.com/QwenLM/Qwen2.5) for the open-source model
-- [Google DeepMind](https://deepmind.google/technologies/gemini/) for Gemini API
-- [Gradio](https://gradio.app) for the UI framework
-- [Plotly](https://plotly.com) for interactive visualizations
+<div align="center">
+  <p>Built for the DualAssist Benchmark Challenge under the <a href="LICENSE">MIT License</a>.</p>
+</div>
