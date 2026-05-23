@@ -437,13 +437,6 @@ def create_app() -> gr.Blocks:
     
     with gr.Blocks(
         title="DualAssist Benchmark",
-        theme=gr.themes.Soft(
-            primary_hue=gr.themes.colors.indigo,
-            secondary_hue=gr.themes.colors.purple,
-            neutral_hue=gr.themes.colors.slate,
-            font=gr.themes.GoogleFont("Inter"),
-        ),
-        css=CUSTOM_CSS,
     ) as app:
         
         # ── Header ──
@@ -484,7 +477,6 @@ def create_app() -> gr.Blocks:
                             type="messages",
                             chatbot=gr.Chatbot(
                                 height=500,
-                                type="messages",
                                 show_copy_button=True,
                                 placeholder="Chat with the open-source model...",
                             ),
@@ -510,7 +502,6 @@ def create_app() -> gr.Blocks:
                             type="messages",
                             chatbot=gr.Chatbot(
                                 height=500,
-                                type="messages",
                                 show_copy_button=True,
                                 placeholder="Chat with the frontier model...",
                             ),
@@ -632,4 +623,11 @@ if __name__ == "__main__":
         server_port=7860,
         share=False,
         show_error=True,
+        theme=gr.themes.Soft(
+            primary_hue=gr.themes.colors.indigo,
+            secondary_hue=gr.themes.colors.purple,
+            neutral_hue=gr.themes.colors.slate,
+            font=gr.themes.GoogleFont("Inter"),
+        ),
+        css=CUSTOM_CSS,
     )

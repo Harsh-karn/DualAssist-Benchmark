@@ -182,13 +182,6 @@ CUSTOM_CSS = """
 
 with gr.Blocks(
     title="DualAssist — OSS Assistant",
-    theme=gr.themes.Soft(
-        primary_hue=gr.themes.colors.indigo,
-        secondary_hue=gr.themes.colors.purple,
-        neutral_hue=gr.themes.colors.slate,
-        font=gr.themes.GoogleFont("Inter"),
-    ),
-    css=CUSTOM_CSS,
 ) as demo:
     gr.HTML("""
     <div class="header-banner">
@@ -204,7 +197,6 @@ with gr.Blocks(
         type="messages",
         chatbot=gr.Chatbot(
             height=450,
-            type="messages",
             show_copy_button=True,
             placeholder="Ask me anything! I'm a helpful AI assistant powered by Qwen 2.5.",
         ),
@@ -220,4 +212,12 @@ with gr.Blocks(
         ],
     )
 
-demo.launch()
+demo.launch(
+    theme=gr.themes.Soft(
+        primary_hue=gr.themes.colors.indigo,
+        secondary_hue=gr.themes.colors.purple,
+        neutral_hue=gr.themes.colors.slate,
+        font=gr.themes.GoogleFont("Inter"),
+    ),
+    css=CUSTOM_CSS,
+)
